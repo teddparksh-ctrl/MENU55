@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Menu 55 • Service Mastery</title>
+  <style>
+    :root {
+      --primary: #58cc02;
+      --primary-shade: #46a302;
+      --wrong: #ff4b4b;
+      --wrong-shade: #d33131;
+      --wrong-bg: #ffdfe0;
+      --correct-bg: #d7ffb8;
+      --bg: #ffffff;
+      --text: #3c3c3c;
+      --card-border: #e5e5e5;
+      --card-active: #84d8ff;
+      --border-dark: #d4d4d4;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: "DIN Next Rounded", "Nunito", -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: #f7f7f7; color: var(--text); display: flex; justify-content: center; min-height: 100vh; overflow-x: hidden; }
+
+    #app-container { width: 100%; max-width: 480px; background: #fff; min-height: 100vh; display: flex; flex-direction: column; position: relative; border-left: 1px solid #eee; border-right: 1px solid #eee; }
+
+    /* Top Navigation bar */
+    .header-bar { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 8px; gap: 12px; }
+    .progress-track { flex-grow: 1; height: 16px; background-color: #e5e5e5; border-radius: 12px; overflow: hidden; position: relative; }
+    .progress-fill { height: 100%; width: 0%; background-color: var(--primary); border-radius: 12px; transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+    .hearts { display: flex; align-items: center; gap: 4px; font-weight: 800; color: #ff4b4b; font-size: 1.1rem; }
+    .hearts svg { width: 22px; height: 22px; fill: currentColor; }
+
+    /* Mascot Speech Bubble Area */
+    .mascot-row { display: flex; align-items: flex-start; gap: 12px; margin: 16px 20px 8px; }
+    .mascot-avatar { width: 56px; height: 56px; border-radius: 50%; background: #ffc800; display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: 0 4px 0 #cf9b00; flex-shrink: 0; }
+    .speech-bubble { background: #fff; border: 2px solid var(--border-dark); border-radius: 14px; padding: 12px 14px; font-size: 0.95rem; font-weight: 700; line-height: 1.35; position: relative; flex-grow: 1; }
+    .speech-bubble::before { content: ""; position: absolute; left: -10px; top: 16px; border-width: 5px 10px 5px 0; border-style: solid; border-color: transparent var(--border-dark) transparent transparent; }
+
+    /* Main Quiz View */
+    .stage { flex-grow: 1; padding: 10px 20px 120px; display: flex; flex-direction: column; }
+    .prompt-label { font-size: 0.85rem; font-weight: 800; color: #afafaf; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.8px; }
+    .prompt-text { font-size: 1.25rem; font-weight: 800; margin-bottom: 20px; line-height: 1.35; color: #222; }
+
+    /* Choice Buttons */
+    .choices-grid { display: flex; flex-direction: column; gap: 12px; }
+    .choice-btn {
+      background: #fff; border: 2px solid var(--border-dark); border-bottom: 4px solid var(--border-dark);
+      border-radius: 14px; padding: 14px 16px; font-size: 1rem; font-weight: 700; color: #4b4b4b;
+      cursor: pointer; text-align: left; transition: all 0.1s ease; display: flex; align-items: center; gap: 12px;
+    }
+    .choice-btn:active:not(:disabled) { transform: translateY(2px); border-bottom-width: 2px; }
+    .choice-btn.selected { border-color: #84d8ff; background: #f0f9ff; border-bottom-color: #5bbde8; color: #1cb0f6; }
+    .choice-key { width: 28px; height: 28px; border-radius: 8px; border: 1.5px solid #d4d4d4; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 800; color: #a0a0a0; flex-shrink: 0; }
+    .choice-btn.selected .choice-key { border-color: #5bbde8; color: #1cb0f6; }
+
+    /* Bottom Evaluation Drawer */
+    .drawer {
+      position: absolute; bottom: 0; left: 0; right: 0; padding: 18px 20px 24px;
+      display: flex; flex-direction: column; gap: 12px; transition: transform 0.25s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      background: #fff; border-top: 2px solid #eee; z-index: 100;
+    }
+    .drawer.correct { background: var(--correct-bg); border-color: #bbf393; }
+    .drawer.wrong { background: var(--wrong-bg); border-color: #ffc1c1; }
+
+    .drawer-status { display: none; align-items: center; gap: 10px; font-size: 1.25rem; font-weight: 800; }
+    .drawer.correct .drawer-status { display: flex; color: #46a302; }
+    .drawer.wrong .drawer-status { display: flex; color: #ea2b2b; }
+    .drawer-message { font-size: 0.9rem; font-weight: 600; color: #444; line-height: 1.35; margin-top: -4px; }
+
+    /* Action Buttons (Duolingo 3D Button Style) */
+    .main-action-btn {
+      background: var(--primary); border: none; border-bottom: 4px solid var(--primary-shade);
+      color: #fff; font-size: 1.05rem; font-weight: 800; padding: 14px 20px; border-radius: 14px;
+      cursor: pointer; text-align: center; text-transform: uppercase; letter-spacing: 0.6px; transition: 0.1s;
+    }
+    .main-action-btn:active { transform: translateY(2px); border-bottom-width: 2px; }
+    .main-action-btn:disabled { background: #e5e5e5; border-bottom-color: #ccc; color: #afafaf; cursor: not-allowed; transform: none; }
+    .drawer.wrong .main-action-btn { background: var(--wrong); border-bottom-color: var(--wrong-shade); }
+
+    /* Result / Game Over Screens */
+    .finish-screen { flex-grow: 1; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 30px; text-align: center; }
+    .finish-screen.show { display: flex; }
+    .finish-trophy { font-size: 72px; margin-bottom: 16px; animation: bounce 0.6s infinite alternate; }
+    @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+    .xp-counter { font-size: 2.2rem; font-weight: 900; color: #ff9600; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+
+  <div id="app-container">
+    <!-- Header -->
+    <div class="header-bar">
+      <div class="progress-track">
+        <div id="progress-bar" class="progress-fill"></div>
+      </div>
+      <div class="hearts">
+        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        <span id="heart-count">5</span>
+      </div>
+    </div>
+
+    <!-- Active Question Stage -->
+    <div id="quiz-stage" class="stage">
+      <div class="mascot-row">
+        <div class="mascot-avatar">👨‍🍳</div>
+        <div class="speech-bubble" id="mascot-text">Ready for Menu 55 briefing? Let's verify service precision!</div>
+      </div>
+
+      <div style="margin-top: 18px;">
+        <div class="prompt-label" id="course-label">COURSE 1 • LEVANTINE</div>
+        <div class="prompt-text" id="question-text">How long is the Wild New Zealand scampi steamed à la minute?</div>
+      </div>
+
+      <div class="choices-grid" id="choices-box"></div>
+    </div>
+
+    <!-- Finish / End Stage -->
+    <div id="finish-stage" class="finish-screen">
+      <div class="finish-trophy" id="finish-icon">🏆</div>
+      <h2 style="font-size: 1.8rem; font-weight: 900; margin-bottom: 6px;" id="finish-title">Lesson Complete!</h2>
+      <div class="xp-counter" id="xp-text">+100 XP</div>
+      <p style="color: #777; font-weight: 600; margin-bottom: 30px;" id="finish-subtitle">You have mastered the menu service points!</p>
+      <button class="main-action-btn" style="width: 100%;" onclick="resetLesson()">Practice Again</button>
+    </div>
+
+    <!-- Slide-Up Evaluation Drawer -->
+    <div class="drawer" id="eval-drawer">
+      <div class="drawer-status" id="drawer-status">
+        <span id="status-icon">✔</span>
+        <span id="status-title">Amazing!</span>
+      </div>
+      <div class="drawer-message" id="drawer-reason"></div>
+      <button id="action-btn" class="main-action-btn" disabled onclick="handleButtonClick()">Check</button>
+    </div>
+  </div>
+
+  <script>
+    // --- BEEP & SOUND EFFECT SYNTHESIZER (NO EXTERNAL AUDIO NEEDED) ---
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let ctx = null;
+
+    function playTone(type) {
+      if (!ctx) ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      const now = ctx.currentTime;
+
+      if (type === 'correct') {
+        osc.frequency.setValueAtTime(523.25, now); // C5
+        osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+        osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+        osc.start(now);
+        osc.stop(now + 0.4);
+      } else if (type === 'wrong') {
+        osc.frequency.setValueAtTime(240, now);
+        osc.frequency.setValueAtTime(180, now + 0.15);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+        osc.start(now);
+        osc.stop(now + 0.35);
+      }
+    }
+
+    // --- CURATED MENU 55 TRAINING QUESTIONS ---
+    const lessonData = [
+      {
+        course: "Course 1 • New Zealand Scampi",
+        q: "What is the calibrated steaming duration for the scampi à la minute?",
+        tip: "Precision cooking preserves its translucent, sweet texture!",
+        options: [
+          "30 to 45 seconds",
+          "1 minute to 1 minute 10 seconds",
+          "2 minutes 15 seconds",
+          "Served raw as crudo"
+        ],
+        answer: 1,
+        exp: "Steamed strictly for 1 min to 1 min 10s depending on size, then served slightly warm."
+      },
+      {
+        course: "Course 2 • Beef Tenderloin Tartar",
+        q: "Which element provides the umami and temperature contrast on the M5 beef?",
+        tip: "A hot/cold mouthfeel interplay!",
+        options: [
+          "Beurre noisette and miso ice cream",
+          "Hot bone marrow reduction",
+          "Warm pickled celeriac emulsion",
+          "Torched duck fat emulsion"
+        ],
+        answer: 0,
+        exp: "Accompanied by a savory brown butter (beurre noisette) and miso ice cream over raw hand-cut beef."
+      },
+      {
+        course: "Course 3 • Torched Mackerel (Aki Saba)",
+        q: "Why is the Aki Saba served near room temperature (~40°C)?",
+        tip: "Think about how fat acts in the palate!",
+        options: [
+          "To keep the beef tongue garnish cold",
+          "It is standard sashimi protocol",
+          "To let rich intramuscular fat melt smoothly on the palate",
+          "To prevent the perilla leaf from wilting"
+        ],
+        answer: 2,
+        exp: "Serving at ~40°C allows peak autumn intramuscular fish fat to melt instantly on the tongue."
+      },
+      {
+        course: "Course 4 • Five Grains",
+        q: "Why are the five grains (millet, rice, barley, wheat, soybean) cooked separately?",
+        tip: "Texture and timing!",
+        options: [
+          "Religious Shen Nong ritual",
+          "Due to distinct cooking times (millet ~4m, rice ~12m, barley ~22m)",
+          "To prevent cross-contamination of gluten",
+          "Soybeans must be deep-fried first"
+        ],
+        answer: 1,
+        exp: "Grains cook at different speeds (millet ~4m, rice ~12m, barley ~22m) and are bound à la minute into risotto."
+      },
+      {
+        course: "Course 5 • Smoked Eel Dashi",
+        q: "What clarification technique replaces the standard chicken breast raft?",
+        tip: "A signature French-Japanese broth method!",
+        options: [
+          "Egg white raft with minced smoked eel meat & trimmings",
+          "Centrifuge separation",
+          "Agar-agar freeze and thaw clarification",
+          "Double mirepoix reduction without protein"
+        ],
+        answer: 0,
+        exp: "Egg whites are combined with minced smoked eel meat and trimmings to clarify the crystal-clear consommé."
+      },
+      {
+        course: "Course 6 • Wild Caught Scallop",
+        q: "To what internal core temperature is the whole scallop roasted?",
+        tip: "Gentle oven basting!",
+        options: [
+          "38°C – 40°C",
+          "46°C – 48°C",
+          "54°C – 56°C",
+          "62°C – 65°C"
+        ],
+        answer: 1,
+        exp: "Wild Dalian scallops coated with morels are roasted to a precise core temperature of 46°C–48°C."
+      },
+      {
+        course: "Course 8 • Huzhou Duck Breast",
+        q: "What is the daily production capacity limit due to the 2-hour roast cycle?",
+        tip: "Dedicated duck chef service cycle!",
+        options: [
+          "5 ducks (30 portions)",
+          "7 ducks (42 portions)",
+          "10 ducks (60 portions)",
+          "15 ducks (90 portions)"
+        ],
+        answer: 1,
+        exp: "Capped strictly at 7 ducks (42 portions) per service due to the rigorous resting and roasting repetition."
+      },
+      {
+        course: "Course 9 • Pre-Dessert (Passionfruit)",
+        q: "How is the signature vibrant pink hue of the spherical shell obtained?",
+        tip: "Kitchen upcycling story!",
+        options: [
+          "Red dragonfruit & beetroot juice",
+          "Upcycled passionfruit rind braised with hibiscus & Moutai",
+          "Synthetic ruby cacao butter",
+          "Raspberry and grenadine glaze"
+        ],
+        answer: 1,
+        exp: "Pickled passionfruit rind is upcycled and braised with hibiscus flowers and Chinese Moutai (Baijiu)."
+      },
+      {
+        course: "Course 11 • Petit Fours Update",
+        q: "Why was the peanut praline replaced with Hazelnut Praline?",
+        tip: "Think about Course 10's ingredients!",
+        options: [
+          "Peanut shortage in local market",
+          "To prevent flavor repetition after Course 10's peanut ganache",
+          "Hazelnuts pair better with green tea éclair",
+          "It is standard autumn rotation"
+        ],
+        answer: 1,
+        exp: "Replaced with hazelnut to avoid duplicate peanut notes right after the Valrhona 70% Guanaja chocolate course."
+      }
+    ];
+
+    // --- STATE MACHINE ---
+    let qIndex = 0;
+    let hearts = 5;
+    let selectedOption = null;
+    let isEvaluated = false;
+
+    const progressBar = document.getElementById('progress-bar');
+    const heartCount = document.getElementById('heart-count');
+    const mascotText = document.getElementById('mascot-text');
+    const courseLabel = document.getElementById('course-label');
+    const questionText = document.getElementById('question-text');
+    const choicesBox = document.getElementById('choices-box');
+    const evalDrawer = document.getElementById('eval-drawer');
+    const drawerStatus = document.getElementById('drawer-status');
+    const statusTitle = document.getElementById('status-title');
+    const statusIcon = document.getElementById('status-icon');
+    const drawerReason = document.getElementById('drawer-reason');
+    const actionBtn = document.getElementById('action-btn');
+
+    function initQuestion() {
+      const current = lessonData[qIndex];
+      isEvaluated = false;
+      selectedOption = null;
+
+      // Update progress & mascot
+      progressBar.style.width = `${(qIndex / lessonData.length) * 100}%`;
+      mascotText.innerText = current.tip;
+      courseLabel.innerText = current.course;
+      questionText.innerText = current.q;
+
+      // Reset bottom drawer
+      evalDrawer.className = 'drawer';
+      drawerReason.innerText = '';
+      actionBtn.innerText = 'Check';
+      actionBtn.disabled = true;
+
+      // Render choice cards
+      choicesBox.innerHTML = '';
+      const letters = ['A', 'B', 'C', 'D'];
+      current.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.innerHTML = `<span class="choice-key">${letters[idx]}</span><span>${opt}</span>`;
+        btn.onclick = () => selectChoice(idx);
+        choicesBox.appendChild(btn);
+      });
+    }
+
+    function selectChoice(idx) {
+      if (isEvaluated) return;
+      selectedOption = idx;
+      
+      const allBtns = document.querySelectorAll('.choice-btn');
+      allBtns.forEach((b, i) => {
+        b.classList.toggle('selected', i === idx);
+      });
+
+      actionBtn.disabled = false;
+    }
+
+    function handleButtonClick() {
+      if (!isEvaluated) {
+        evaluateAnswer();
+      } else {
+        nextStep();
+      }
+    }
+
+    function evaluateAnswer() {
+      isEvaluated = true;
+      const current = lessonData[qIndex];
+      const isCorrect = selectedOption === current.answer;
+
+      // Disable choices
+      document.querySelectorAll('.choice-btn').forEach(b => b.disabled = true);
+
+      if (isCorrect) {
+        playTone('correct');
+        evalDrawer.className = 'drawer correct';
+        statusTitle.innerText = 'Nicely done!';
+        statusIcon.innerText = '✔';
+        drawerReason.innerText = current.exp;
+      } else {
+        playTone('wrong');
+        hearts = Math.max(0, hearts - 1);
+        heartCount.innerText = hearts;
+        evalDrawer.className = 'drawer wrong';
+        statusTitle.innerText = 'Correct Solution:';
+        statusIcon.innerText = '✖';
+        drawerReason.innerText = current.options[current.answer] + ' — ' + current.exp;
+
+        if (hearts === 0) {
+          setTimeout(showGameOver, 900);
+          return;
+        }
+      }
+
+      actionBtn.innerText = 'Continue';
+    }
+
+    function nextStep() {
+      qIndex++;
+      if (qIndex < lessonData.length) {
+        initQuestion();
+      } else {
+        showSuccess();
+      }
+    }
+
+    function showSuccess() {
+      progressBar.style.width = '100%';
+      document.getElementById('quiz-stage').style.display = 'none';
+      evalDrawer.style.display = 'none';
+      const finish = document.getElementById('finish-stage');
+      finish.classList.add('show');
+      document.getElementById('finish-icon').innerText = '🌟';
+      document.getElementById('finish-title').innerText = 'Briefing Cleared!';
+      document.getElementById('finish-subtitle').innerText = 'You hit Michelin 3-star knowledge standards for Menu 55.';
+      document.getElementById('xp-text').innerText = '+120 XP';
+    }
+
+    function showGameOver() {
+      document.getElementById('quiz-stage').style.display = 'none';
+      evalDrawer.style.display = 'none';
+      const finish = document.getElementById('finish-stage');
+      finish.classList.add('show');
+      document.getElementById('finish-icon').innerText = '💔';
+      document.getElementById('finish-title').innerText = 'Out of Hearts!';
+      document.getElementById('finish-subtitle').innerText = 'Review the ingredient guide before tomorrow\'s service.';
+      document.getElementById('xp-text').innerText = '+0 XP';
+    }
+
+    function resetLesson() {
+      qIndex = 0;
+      hearts = 5;
+      heartCount.innerText = hearts;
+      document.getElementById('quiz-stage').style.display = 'flex';
+      evalDrawer.style.display = 'flex';
+      document.getElementById('finish-stage').classList.remove('show');
+      initQuestion();
+    }
+
+    // Launch initial question
+    initQuestion();
+  </script>
+</body>
+</html>

@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Menu 55 • 30-Question Storytelling & Sourcing Master</title>
+  <style>
+    :root {
+      --primary: #58cc02;
+      --primary-shade: #46a302;
+      --wrong: #ff4b4b;
+      --wrong-shade: #d33131;
+      --wrong-bg: #ffdfe0;
+      --correct-bg: #d7ffb8;
+      --border-dark: #e5e5e5;
+      --text: #3c3c3c;
+      --story-tag: #ff9600;
+      --story-bg: #fff8eb;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: "DIN Next Rounded", "Nunito", -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: #f7f7f7; color: var(--text); display: flex; justify-content: center; min-height: 100vh; }
+
+    #app-container { width: 100%; max-width: 500px; background: #fff; min-height: 100vh; display: flex; flex-direction: column; position: relative; border-left: 1px solid #eee; border-right: 1px solid #eee; }
+
+    /* Header & Progress Bar */
+    .header-bar { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 8px; gap: 12px; }
+    .progress-track { flex-grow: 1; height: 16px; background-color: #e5e5e5; border-radius: 12px; overflow: hidden; }
+    .progress-fill { height: 100%; width: 0%; background-color: var(--primary); border-radius: 12px; transition: width 0.35s ease; }
+    .hearts { display: flex; align-items: center; gap: 4px; font-weight: 800; color: #ff4b4b; font-size: 1.1rem; }
+    .hearts svg { width: 22px; height: 22px; fill: currentColor; }
+
+    /* Mascot Banner */
+    .mascot-row { display: flex; align-items: flex-start; gap: 12px; margin: 12px 20px 8px; }
+    .mascot-avatar { width: 50px; height: 50px; border-radius: 50%; background: #ff9600; display: flex; align-items: center; justify-content: center; font-size: 26px; box-shadow: 0 4px 0 #cf7500; flex-shrink: 0; }
+    .speech-bubble { background: #fff; border: 2px solid #dedede; border-radius: 14px; padding: 10px 14px; font-size: 0.9rem; font-weight: 700; line-height: 1.35; position: relative; flex-grow: 1; }
+    .speech-bubble::before { content: ""; position: absolute; left: -8px; top: 14px; border-width: 5px 8px 5px 0; border-style: solid; border-color: transparent #dedede transparent transparent; }
+
+    /* Question View */
+    .stage { flex-grow: 1; padding: 10px 20px 140px; display: flex; flex-direction: column; }
+    .badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px; width: fit-content; background: var(--story-bg); color: var(--story-tag); border: 1.5px solid #ffe1b3; }
+    .prompt-meta { font-size: 0.8rem; font-weight: 800; color: #aaa; text-transform: uppercase; margin-bottom: 4px; }
+    .prompt-title { font-size: 1.15rem; font-weight: 800; color: #222; margin-bottom: 14px; line-height: 1.35; }
+
+    /* Story Card */
+    .story-card { background: #fafafa; border: 2px dashed #dedede; border-radius: 14px; padding: 12px 14px; font-size: 0.88rem; line-height: 1.45; font-weight: 600; color: #555; margin-bottom: 16px; }
+
+    /* Choice Options */
+    .choices-grid { display: flex; flex-direction: column; gap: 10px; }
+    .choice-btn {
+      background: #fff; border: 2px solid var(--border-dark); border-bottom: 4px solid var(--border-dark);
+      border-radius: 14px; padding: 12px 16px; font-size: 0.93rem; font-weight: 700; color: #444;
+      cursor: pointer; text-align: left; transition: all 0.1s ease; line-height: 1.3;
+    }
+    .choice-btn:active:not(:disabled) { transform: translateY(2px); border-bottom-width: 2px; }
+    .choice-btn.selected { border-color: #84d8ff; background: #f0f9ff; border-bottom-color: #5bbde8; color: #1cb0f6; }
+
+    /* Slide-Up Bottom Drawer */
+    .drawer {
+      position: absolute; bottom: 0; left: 0; right: 0; padding: 18px 20px 24px;
+      display: flex; flex-direction: column; gap: 10px; background: #fff; border-top: 2px solid #eee; z-index: 100;
+    }
+    .drawer.correct { background: var(--correct-bg); border-color: #bbf393; }
+    .drawer.wrong { background: var(--wrong-bg); border-color: #ffc1c1; }
+
+    .drawer-status { display: none; align-items: center; gap: 10px; font-size: 1.25rem; font-weight: 800; }
+    .drawer.correct .drawer-status { display: flex; color: #46a302; }
+    .drawer.wrong .drawer-status { display: flex; color: #ea2b2b; }
+    .drawer-message { font-size: 0.86rem; font-weight: 600; color: #444; line-height: 1.35; }
+
+    .main-btn {
+      background: var(--primary); border: none; border-bottom: 4px solid var(--primary-shade);
+      color: #fff; font-size: 1.05rem; font-weight: 800; padding: 14px 20px; border-radius: 14px;
+      cursor: pointer; text-align: center; text-transform: uppercase; letter-spacing: 0.6px;
+    }
+    .main-btn:active { transform: translateY(2px); border-bottom-width: 2px; }
+    .main-btn:disabled { background: #e5e5e5; border-bottom-color: #ccc; color: #afafaf; cursor: not-allowed; transform: none; }
+    .drawer.wrong .main-btn { background: var(--wrong); border-bottom-color: var(--wrong-shade); }
+
+    /* Finish Stage */
+    .finish-screen { flex-grow: 1; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 30px; text-align: center; }
+    .finish-screen.show { display: flex; }
+  </style>
+</head>
+<body>
+
+  <div id="app-container">
+    <!-- Top Progress Bar -->
+    <div class="header-bar">
+      <div class="progress-track">
+        <div id="progress-fill" class="progress-fill"></div>
+      </div>
+      <div class="hearts">
+        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        <span id="heart-count">5</span>
+      </div>
+    </div>
+
+    <!-- Active Stage -->
+    <div id="quiz-stage" class="stage">
+      <div class="mascot-row">
+        <div class="mascot-avatar">✨</div>
+        <div class="speech-bubble" id="mascot-text">Share the seasonal sourcing and culinary stories!</div>
+      </div>
+
+      <div style="margin-top: 10px;">
+        <div class="prompt-meta" id="q-counter">Question 1 of 30</div>
+        <div class="badge" id="type-badge">SOURCING</div>
+        <div class="prompt-title" id="question-title">Loading...</div>
+      </div>
+
+      <div class="story-card" id="story-context"></div>
+      <div class="choices-grid" id="choices-box"></div>
+    </div>
+
+    <!-- Finish Stage -->
+    <div id="finish-stage" class="finish-screen">
+      <div style="font-size: 72px; margin-bottom: 16px;" id="finish-icon">🏆</div>
+      <h2 style="font-size: 1.8rem; font-weight: 900; margin-bottom: 8px;" id="finish-title">Mastery Achieved!</h2>
+      <div style="font-size: 2.2rem; font-weight: 900; color: #ff9600; margin-bottom: 12px;" id="xp-text">+300 XP</div>
+      <p style="color: #777; font-weight: 600; margin-bottom: 30px;" id="finish-desc">You completed all 30 menu sourcing & storytelling training points!</p>
+      <button class="main-btn" style="width: 100%;" onclick="resetLesson()">Restart Challenge</button>
+    </div>
+
+    <!-- Bottom Evaluation Drawer -->
+    <div class="drawer" id="eval-drawer">
+      <div class="drawer-status" id="drawer-status">
+        <span id="status-icon">✔</span>
+        <span id="status-title">Spot On!</span>
+      </div>
+      <div class="drawer-message" id="drawer-reason"></div>
+      <button id="action-btn" class="main-btn" disabled onclick="handleButtonClick()">Check</button>
+    </div>
+  </div>
+
+  <script>
+    // --- BROWSER AUDIO SYNTHESIZER ---
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+    function playTone(type) {
+      if (!audioCtx) audioCtx = new AudioCtx();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      const now = audioCtx.currentTime;
+
+      if (type === 'correct') {
+        osc.frequency.setValueAtTime(523.25, now);
+        osc.frequency.setValueAtTime(659.25, now + 0.1);
+        osc.frequency.setValueAtTime(783.99, now + 0.2);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+        osc.start(now);
+        osc.stop(now + 0.4);
+      } else if (type === 'wrong') {
+        osc.frequency.setValueAtTime(260, now);
+        osc.frequency.setValueAtTime(170, now + 0.15);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+        osc.start(now);
+        osc.stop(now + 0.35);
+      }
+    }
+
+    // --- 30 COMPREHENSIVE STORYTELLING, SOURCING & INSPIRATION QUESTIONS ---
+    const questions = [
+      // COURSE 1: NZ SCAMPI
+      {
+        badge: "REGIONAL INSPIRATION",
+        q: "Which iconic regional dish directly inspired Course 1 (NZ Scampi)?",
+        context: "Course 1: New Zealand Scampi | Middle East / Levantine reference",
+        options: [
+          "Greek Horiatiki salad",
+          "Levantine Fattoush salad",
+          "North African Shakshuka",
+          "Turkish Shepherd's salad"
+        ],
+        answer: 1,
+        exp: "Course 1 is inspired by the classic Levantine Fattoush salad, translated with Za'atar pita crisps, yogurt, and pomegranate."
+      },
+      {
+        badge: "SEASONAL SOURCING",
+        q: "Where is the fresh seasonal pomegranate sourced from in Course 1?",
+        context: "Terroir hook: Pairing pristine wild Southern Hemisphere shellfish with domestic fruits.",
+        options: [
+          "Xinjiang Kashgar",
+          "Yunnan Province",
+          "Shaanxi Lintong",
+          "Imported from Turkey"
+        ],
+        answer: 1,
+        exp: "The tableside script explicitly highlights seasonal Yunnan pomegranate paired with wild New Zealand scampi."
+      },
+      {
+        badge: "KITCHEN TECHNIQUE",
+        q: "How is the concentrated 'onion water' for the Fattoush Vinaigrette prepared?",
+        context: "Behind-the-scenes craft: A multi-day labor of extraction.",
+        options: [
+          "Charred over binchotan and puréed with raw shallots",
+          "Blended with citrus, cured over the weekend, hung for clear juice extraction",
+          "Boiled in a pressure cooker with dashi and kombu",
+          "Fermented in shio koji for 2 weeks in an incubator"
+        ],
+        answer: 1,
+        exp: "Onions, citrus, and aromatics are blended, cured over the weekend, hung for clear gravity juice extraction, and finished with herb oils."
+      },
+
+      // COURSE 2: BEEF TENDERLOIN TARTAR
+      {
+        badge: "INGREDIENT GRADING",
+        q: "What beef cut and grade is selected for Course 2 Tartar?",
+        context: "Texture focus: Cut into larger hand-cut pieces rather than ground.",
+        options: [
+          "Japanese A5 Miyazaki Wagyu ribeye",
+          "Australian M5 beef tenderloin",
+          "American USDA Prime flank steak",
+          "Domestic dry-aged Ningxia striploin"
+        ],
+        answer: 1,
+        exp: "Australian M5 beef tenderloin is hand-cut in larger cubes to deliver satisfying bite and toothsome texture."
+      },
+      {
+        badge: "PANTRY SOURCING & CROWNING",
+        q: "Which specific caviar brand and grade crowns Course 2?",
+        context: "Finishing luxury: Seasoned with kombu oil and aged soy sauce.",
+        options: [
+          "Kaluga Queen Beluga Hybrid",
+          "Perseus Occietra No. 2 (Aged Caviar)",
+          "Royal Oscietra Caviar Imperial",
+          "Kaviari Kristal Caviar"
+        ],
+        answer: 1,
+        exp: "Plated with a quenelle of premium Perseus Occietra No. 2 (Aged Caviar)."
+      },
+      {
+        badge: "GUEST SENSORY STORY",
+        q: "What intentional sensory contrast does the Beurre Noisette ice cream introduce in Course 2?",
+        context: "Modern Japanese culinary approach.",
+        options: [
+          "Acidic contrast to cut through heavy beef fat",
+          "A savory temperature contrast against the raw seasoned beef",
+          "Crisp textural resistance replacing croutons",
+          "Sweetness to mask the miso profile"
+        ],
+        answer: 1,
+        exp: "The savory beurre noisette and miso ice cream introduces a striking temperature and umami contrast against the raw beef."
+      },
+
+      // COURSE 3: TORCHED MACKEREL (AKI SABA)
+      {
+        badge: "R&D RESEARCH INSPIRATION",
+        q: "What culinary journey inspired the flavor profile of Course 3 (Aki Saba)?",
+        context: "Team travels: Korean BBQ culture and island specialty exploration.",
+        options: [
+          "Culinary field research in Jeju Island",
+          "Street food tours across Busan night markets",
+          "Temple fermentation stages in Jeonju",
+          "Gangwon-do dried pollack research"
+        ],
+        answer: 0,
+        exp: "Directly inspired by the culinary research trip to Jeju Island and traditional Korean barbecue culture."
+      },
+      {
+        badge: "SEASONAL HARVEST & LOGISTICS",
+        q: "Why does the Autumn Mackerel arrive specifically on Tuesday mornings from Shandong?",
+        context: "Seasonality: Sourced at peak seasonal fat content.",
+        options: [
+          "Tuesday is the only open port auction day in Qingdao",
+          "Sourced fresh weekly at peak autumn intramuscular fat",
+          "To allow 6 days of dry curing before the weekend",
+          "To align with moon tides in the Bohai Sea"
+        ],
+        answer: 1,
+        exp: "Selected for its peak autumn seasonal fat, arriving fresh Tuesday mornings to be cured in shio koji."
+      },
+      {
+        badge: "HERB DIFFERENTIATION",
+        q: "Why does the kitchen specifically choose deep-fried Perilla leaf over Shiso in Course 3?",
+        context: "Botanical accuracy for floor staff storytelling.",
+        options: [
+          "Perilla leaf has zero allergens compared to shiso",
+          "Perilla leaf has a broader physical structure and a distinct anise aroma note",
+          "Shiso turns completely bitter when exposed to hot frying oil",
+          "Perilla leaf absorbs less oil during flash frying"
+        ],
+        answer: 1,
+        exp: "Perilla is prized over Japanese shiso for its broader architectural structure and distinctive warm anise flavor profile."
+      },
+      {
+        badge: "PREPARATION CRAFT",
+        q: "How is the beef tongue in the Course 3 daikon salad prepared?",
+        context: "Multi-day butchery process accompanying the fish.",
+        options: [
+          "Smoked over cherrywood for 12 hours",
+          "Brined for 7 days, braised for 48 hours, then cubed",
+          "Thinly shaved raw and flash-poached in dashi",
+          "Salt-baked in a lotus leaf crust"
+        ],
+        answer: 1,
+        exp: "The beef tongue undergoes a 7-day brine followed by a slow 48-hour braise before being cubed and folded with daikon kimchi."
+      },
+
+      // COURSE 4: FIVE GRAINS
+      {
+        badge: "CULTURAL MYTHOLOGY",
+        q: "To which historical/mythological figure is the 'Five Grains' concept attributed in Chinese heritage?",
+        context: "Connecting imperial Chinese agricultural history with a European risotto format.",
+        options: [
+          "Yellow Emperor (Huang Di)",
+          "Emperor Shen Nong (Divine Farmer)",
+          "Yu the Great (Da Yu)",
+          "Cangjie (Creator of characters)"
+        ],
+        answer: 1,
+        exp: "The menu honors Emperor Shen Nong, credited in Chinese mythology with introducing agriculture and the Five Grains (五谷)."
+      },
+      {
+        badge: "BOTANICAL COMPOSITION",
+        q: "What exact grains constitute the Five Grains blend in Course 4?",
+        context: "Precision cooking times vary from 4 min to 22 min.",
+        options: [
+          "Rice, oats, quinoa, corn, and rye",
+          "Rice, millet, barley, wheat, and soybean",
+          "Sorghum, buckwheat, wild rice, amaranth, and spelt",
+          "Brown rice, black rice, lotus seed, adzuki, and mung bean"
+        ],
+        answer: 1,
+        exp: "The dish unites 5 traditional grains: rice, millet, barley, wheat, and soybean, cooked individually to ensure distinct bites."
+      },
+      {
+        badge: "TABLESIDE STORY PROP",
+        q: "What interactive prop is presented alongside Course 4 to engage the guest?",
+        context: "Tableside storytelling aid.",
+        options: [
+          "A stone grain-grinding mill miniature",
+          "A circular wooden table board displaying raw samples of the five grains",
+          "An ancient agricultural almanac excerpt",
+          "A bundle of freshly dried wheat stalks"
+        ],
+        answer: 1,
+        exp: "Servers present a circular wooden display board with raw grain samples to explain the grain textures to dining guests."
+      },
+      {
+        badge: "CIRCULAR KITCHEN CRAFT",
+        q: "What is the key component and flavor driver of the roasted bread sauce in Course 4?",
+        context: "Zero-waste bakery transformation.",
+        options: [
+          "Stale brioche soaked in cognac and brown butter",
+          "Roasted, deeply browned sourdough bread heels infused with sourdough miso",
+          "Toasted panko breadcrumbs simmered in parmesan whey",
+          "Fermented rye beer reduced with caramelized leeks"
+        ],
+        answer: 1,
+        exp: "The Sourdough Miso Velouté infuses deeply roasted sourdough heels into an onion base with sourdough miso for a rich, roasted-yeast flavor."
+      },
+
+      // COURSE 5: SMOKED EEL DASHI
+      {
+        badge: "TECHNIQUE FUSION",
+        q: "Course 5 represents an exact synthesis between which two classical culinary traditions?",
+        context: "Smoked Eel Dashi: Clarification meets sea infusion.",
+        options: [
+          "Cantonese double-boiling and Spanish molecular spherification",
+          "French classical consommé clarification and Japanese dashi",
+          "Nordic brine fermentation and Sichuan spicy court broth",
+          "Italian brodo di carne and Korean gomguk extraction"
+        ],
+        answer: 1,
+        exp: "Course 5 fuses French egg-white consommé clarification techniques with traditional Japanese katsuobushi-kombu dashi."
+      },
+      {
+        badge: "RAFTSMANSHIP INNOVATION",
+        q: "How does the chef innovate on the traditional French egg-white consommé raft in Course 5?",
+        context: "Broth clarification chemistry.",
+        options: [
+          "Using minced smoked eel meat and trimmings instead of chicken breast",
+          "Clarifying through crushed whole oyster shells",
+          "Replacing egg whites with freeze-filtered agar gelatin",
+          "Using pureed shiitake mushroom stems and egg whites"
+        ],
+        answer: 0,
+        exp: "Minced smoked eel meat and trimmings are bound into the egg-white raft to infuse rich smokiness directly into the crystal broth."
+      },
+      {
+        badge: "CHEESE PROVENANCE",
+        q: "Which aged European cheese anchors the garnish ring in Course 5?",
+        context: "Dairy note paired with crisp green apple and smoked eel.",
+        options: [
+          "24-Month Parmigiano Reggiano",
+          "Aged French Comté",
+          "Swiss Gruyère AOP",
+          "Dutch Aged Gouda"
+        ],
+        answer: 1,
+        exp: "An aged Comté crisp ring supports cubes of tender smoked eel, paired with pickled cauliflower and tart green apple."
+      },
+
+      // COURSE 6: WILD CAUGHT SCALLOP
+      {
+        badge: "COASTAL SOURCING",
+        q: "Where are the extra-large wild scallops harvested from in Course 6?",
+        context: "Domestic cold-water shellfish provenance.",
+        options: [
+          "Bohai Bay, Dalian",
+          "Zhoushan Archipelago, Zhejiang",
+          "Qingdao, Shandong",
+          "Beibu Gulf, Guangxi"
+        ],
+        answer: 0,
+        exp: "Wild-caught extra-large scallops originate from Dalian in northern China, celebrated for their natural plumpness and sweetness."
+      },
+      {
+        badge: "TERROIR INTERPLAY",
+        q: "Which wild mountainous ingredient coats the Dalian scallop in Course 6?",
+        context: "Mountain forestry meeting northern coastal shellfish.",
+        options: [
+          "Sichuan matsutake mushrooms",
+          "Steamed Yunnan morel mushrooms",
+          "Guizhou bamboo fungus",
+          "Changbai Mountain black wood ear"
+        ],
+        answer: 1,
+        exp: "The scallop is layered with a fine scallop farce and generously coated in steamed Yunnan morel mushrooms."
+      },
+      {
+        badge: "SAUCE CRAFT & ROASTING",
+        q: "What unique barista element enriches the bacon XO ragout in Course 6?",
+        context: "Modern Chinese flavor complexity.",
+        options: [
+          "Cold brew Cascara reduction",
+          "Brewed espresso and espresso oil",
+          "Roasted chicory root extract",
+          "Cocoa nib infused duck fat"
+        ],
+        answer: 1,
+        exp: "The bacon-mushroom XO ragout is enriched with freshly brewed espresso and espresso oil for roasted, bitter-sweet savory depth."
+      },
+
+      // COURSE 7: HUZHOU DUCK (RAVIOLO)
+      {
+        badge: "FARM PARTNERSHIP",
+        q: "Who is the exclusive farm partner for the free-range ducks, and where are they located?",
+        context: "Huzhou Duck Two Ways | Supplier background.",
+        options: [
+          "Farmer Kenneth in Huzhou",
+          "Master Liu in Jiaxing",
+          "Artisan Zhang in Shaoxing",
+          "Farmer Chen in Chongming Island"
+        ],
+        answer: 0,
+        exp: "The ducks are sourced exclusively from Kenneth in Huzhou (raised to 2.5–2.8 kg) in an ongoing 3+ year working partnership."
+      },
+      {
+        badge: "R&D MILESTONE",
+        q: "What was the R&D testing milestone achieved by the culinary team before launching the duck?",
+        context: "Menu development persistence.",
+        options: [
+          "20 test birds over 2 weeks",
+          "Over 100 test birds tested across 3 months",
+          "50 wild ducks cross-bred over 6 months",
+          "300 birds tested across all four seasons"
+        ],
+        answer: 1,
+        exp: "Developed over 3 months across more than 100 test birds to combine Peking duck crispy skin with French medium-pink breast roasting."
+      },
+      {
+        badge: "REGIONAL INSPIRATION",
+        q: "Which specific regional cuisine profile is expressed in Course 7 (Duck Confit Raviolo)?",
+        context: "Duck Service 1: Coastal, aromatic, coconut-driven.",
+        options: [
+          "North Indian Punjabi tandoor profile",
+          "South Indian coastal profile (curry leaf & coconut)",
+          "Bengali mustard seed & fish tradition",
+          "Goan vinegar vindaloo tradition"
+        ],
+        answer: 1,
+        exp: "Course 7 highlights South Indian coastal flavors—driven by coconut milk tadka, yellow mustard seeds, curry leaf oil, and raw green mango."
+      },
+
+      // COURSE 8: ROASTED DUCK BREAST
+      {
+        badge: "REGIONAL INSPIRATION",
+        q: "What regional style and spice philosophy inspires Course 8 (Roasted Duck Breast)?",
+        context: "Duck Service 2: Warm, hearty winter spices.",
+        options: [
+          "South Indian spicy pepper Chettinad",
+          "North Indian warm winter spices (Garam Masala & rich jus)",
+          "Himalayan dried yak butter style",
+          "Sri Lankan roasted black curry"
+        ],
+        answer: 1,
+        exp: "Course 8 shifts to North India, featuring warming winter profiles, Garam Masala brine, spiced duck jus, and sweet pumpkin."
+      },
+      {
+        badge: "ARTISANAL LIMITATION",
+        q: "Why is the roasted duck breast strictly capped at 7 ducks (42 portions) per service?",
+        context: "Operational exclusivity and artisanal dedication.",
+        options: [
+          "Kenneth can only slaughter 7 ducks per day",
+          "The rigorous 2-hour multi-rest oven cycle managed by a dedicated duck chef",
+          "The aging fridge only holds 7 birds",
+          "Strict municipal fine-dining roasting quotas"
+        ],
+        answer: 1,
+        exp: "The meticulous 2-hour cooking rhythm (5 cycles of 1-min roast, rotate, 10-min rest) requires a dedicated chef and caps daily output to 7 ducks."
+      },
+      {
+        badge: "WILD ACIDITY ACCENT",
+        q: "What wild berry provides bright golden acidity in the Course 8 duck sauce?",
+        context: "Winter velouté balancing rich spiced duck jus.",
+        options: [
+          "Wild lingonberry",
+          "Sea buckthorn (沙棘)",
+          "Goji berry",
+          "Cloudberry"
+        ],
+        answer: 1,
+        exp: "A vibrant Sea Buckthorn Velouté (roasted pumpkin, carrot, verjus, white wine, sea buckthorn) cuts through the rich roasted duck breast."
+      },
+
+      // COURSE 9: PASSIONFRUIT PRE-DESSERT
+      {
+        badge: "UPCYCLING MARKETING",
+        q: "What is the key sustainable upcycling message behind the signature 'Pink Ball' (Course 9)?",
+        context: "Replacing the former rhubarb iteration.",
+        options: [
+          "The plate is made from recycled oyster shells",
+          "The pink hue comes from upcycled passionfruit rind braised with hibiscus and Moutai",
+          "The sorbet is spun from leftover wine lees",
+          "The sphere is blown from surplus organic sugarcane"
+        ],
+        answer: 1,
+        exp: "The kitchen transforms pickled passionfruit rinds by braising them with hibiscus flowers and Chinese Moutai (Baijiu) for natural pink coloring."
+      },
+      {
+        badge: "STAFF PRESENTATION PROTOCOL",
+        q: "What crucial vocabulary instruction must servers remember regarding Course 9 on the printed menu?",
+        context: "Refined tableside communication.",
+        options: [
+          "Always announce the exact percentage of alcohol in the Moutai",
+          "The word 'skin' or 'rind' is NOT printed; servers tell the upcycling story verbally",
+          "Never mention ginger to avoid scaring guests",
+          "Must ask guests to wear service gloves before cracking"
+        ],
+        answer: 1,
+        exp: "The printed menu lists 'Passionfruit'; servers verbally explain the creative craft of upcycling and slow-cooking the pickled rind."
+      },
+
+      // COURSE 10 & 11: GUANAJA CHOCOLATE & PETIT FOURS
+      {
+        badge: "SERVICE GUIDANCE",
+        q: "What exact tasting instruction MUST floor staff deliver for Course 10 (Valrhona 70% Guanaja)?",
+        context: "Main dessert temperature and flavor contrast.",
+        options: [
+          "Eat the cold mandarin sorbet first to freeze the palate before chocolate",
+          "Eat the warm chocolate mille-feuille and chilled sorbet together in alternating bites",
+          "Melt the chocolate by pouring hot tea over it",
+          "Wait 5 minutes for the dish to settle to room temperature"
+        ],
+        answer: 1,
+        exp: "Guests must be guided to enjoy the pleasantly warm chocolate mille-feuille and chilled mandarin sorbet together for temperature contrast."
+      },
+      {
+        badge: "MENU ROTATION LOGIC",
+        q: "Why was the peanut praline swapped for Hazelnut Praline in Course 11 (Petit Fours)?",
+        context: "Palate rhythm and culinary design logic.",
+        options: [
+          "Hazelnuts have a longer shelf life in the pastry walk-in",
+          "To prevent flavor repetition following the peanut ganache in Course 10",
+          "The pastry chef changed Italian suppliers",
+          "To make the petit fours 100% nut-free"
+        ],
+        answer: 1,
+        exp: "Swapping to hazelnut praline prevents redundant peanut flavors immediately following the peanut ganache in the main dessert."
+      }
+    ];
+
+    // --- GAME ENGINE STATE ---
+    let curIndex = 0;
+    let hearts = 5;
+    let selectedIdx = null;
+    let isEvaluated = false;
+
+    const progressFill = document.getElementById('progress-fill');
+    const heartCount = document.getElementById('heart-count');
+    const qCounter = document.getElementById('q-counter');
+    const typeBadge = document.getElementById('type-badge');
+    const questionTitle = document.getElementById('question-title');
+    const storyContext = document.getElementById('story-context');
+    const choicesBox = document.getElementById('choices-box');
+    const evalDrawer = document.getElementById('eval-drawer');
+    const drawerStatus = document.getElementById('drawer-status');
+    const statusTitle = document.getElementById('status-title');
+    const statusIcon = document.getElementById('status-icon');
+    const drawerReason = document.getElementById('drawer-reason');
+    const actionBtn = document.getElementById('action-btn');
+
+    function loadQuestion() {
+      const item = questions[curIndex];
+      isEvaluated = false;
+      selectedIdx = null;
+
+      progressFill.style.width = `${(curIndex / questions.length) * 100}%`;
+      qCounter.innerText = `Question ${curIndex + 1} of ${questions.length}`;
+      typeBadge.innerText = item.badge;
+      questionTitle.innerText = item.q;
+      storyContext.innerHTML = item.context;
+
+      evalDrawer.className = 'drawer';
+      actionBtn.innerText = 'Check';
+      actionBtn.disabled = true;
+
+      choicesBox.innerHTML = '';
+      item.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.innerText = opt;
+        btn.onclick = () => selectOption(idx);
+        choicesBox.appendChild(btn);
+      });
+    }
+
+    function selectOption(idx) {
+      if (isEvaluated) return;
+      selectedIdx = idx;
+      document.querySelectorAll('.choice-btn').forEach((b, i) => {
+        b.classList.toggle('selected', i === idx);
+      });
+      actionBtn.disabled = false;
+    }
+
+    function handleButtonClick() {
+      if (!isEvaluated) {
+        evaluate();
+      } else {
+        curIndex++;
+        if (curIndex < questions.length) {
+          loadQuestion();
+        } else {
+          showFinish();
+        }
+      }
+    }
+
+    function evaluate() {
+      isEvaluated = true;
+      const item = questions[curIndex];
+      const isCorrect = selectedIdx === item.answer;
+
+      document.querySelectorAll('.choice-btn').forEach(b => b.disabled = true);
+
+      if (isCorrect) {
+        playTone('correct');
+        evalDrawer.className = 'drawer correct';
+        statusTitle.innerText = 'Excellent Storytelling!';
+        statusIcon.innerText = '✔';
+        drawerReason.innerText = item.exp;
+      } else {
+        playTone('wrong');
+        hearts = Math.max(0, hearts - 1);
+        heartCount.innerText = hearts;
+        evalDrawer.className = 'drawer wrong';
+        statusTitle.innerText = 'Official Training Note:';
+        statusIcon.innerText = '✖';
+        drawerReason.innerText = item.options[item.answer] + ' — ' + item.exp;
+
+        if (hearts === 0) {
+          setTimeout(() => {
+            document.getElementById('quiz-stage').style.display = 'none';
+            evalDrawer.style.display = 'none';
+            document.getElementById('finish-stage').classList.add('show');
+            document.getElementById('finish-icon').innerText = '💔';
+            document.getElementById('finish-title').innerText = 'Out of Hearts!';
+            document.getElementById('xp-text').innerText = '+0 XP';
+            document.getElementById('finish-desc').innerText = 'Review the Menu No. 55 guide and try the 30-question sprint again!';
+          }, 800);
+          return;
+        }
+      }
+
+      actionBtn.innerText = (curIndex === questions.length - 1) ? 'Complete Sprint' : 'Continue';
+    }
+
+    function showFinish() {
+      progressFill.style.width = '100%';
+      document.getElementById('quiz-stage').style.display = 'none';
+      evalDrawer.style.display = 'none';
+      document.getElementById('finish-stage').classList.add('show');
+      document.getElementById('finish-icon').innerText = '🏆';
+      document.getElementById('finish-title').innerText = 'Mastery Achieved!';
+      document.getElementById('xp-text').innerText = '+300 XP';
+      document.getElementById('finish-desc').innerText = 'Congratulations! You mastered all 30 menu sourcing, terroir & marketing questions!';
+    }
+
+    function resetLesson() {
+      curIndex = 0;
+      hearts = 5;
+      heartCount.innerText = hearts;
+      document.getElementById('quiz-stage').style.display = 'flex';
+      evalDrawer.style.display = 'flex';
+      document.getElementById('finish-stage').classList.remove('show');
+      loadQuestion();
+    }
+
+    // Launch
+    loadQuestion();
+  </script>
+</body>
+</html>

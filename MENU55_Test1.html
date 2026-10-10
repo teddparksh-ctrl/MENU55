@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Menu 55 • Speech Master</title>
+  <style>
+    :root {
+      --primary: #58cc02;
+      --primary-shade: #46a302;
+      --wrong: #ff4b4b;
+      --wrong-shade: #d33131;
+      --wrong-bg: #ffdfe0;
+      --correct-bg: #d7ffb8;
+      --border-dark: #e5e5e5;
+      --text: #3c3c3c;
+      --tile-active: #84d8ff;
+      --tile-shadow: #bbf0ff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: "DIN Next Rounded", "Nunito", -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: #f7f7f7; color: var(--text); display: flex; justify-content: center; min-height: 100vh; }
+
+    #app-container { width: 100%; max-width: 500px; background: #fff; min-height: 100vh; display: flex; flex-direction: column; position: relative; border-left: 1px solid #eee; border-right: 1px solid #eee; }
+
+    /* Top bar */
+    .header-bar { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 8px; gap: 12px; }
+    .progress-track { flex-grow: 1; height: 16px; background-color: #e5e5e5; border-radius: 12px; overflow: hidden; }
+    .progress-fill { height: 100%; width: 0%; background-color: var(--primary); border-radius: 12px; transition: width 0.35s ease; }
+    .hearts { display: flex; align-items: center; gap: 4px; font-weight: 800; color: #ff4b4b; font-size: 1.1rem; }
+    .hearts svg { width: 22px; height: 22px; fill: currentColor; }
+
+    /* Mascot banner */
+    .mascot-row { display: flex; align-items: flex-start; gap: 12px; margin: 12px 20px 10px; }
+    .mascot-avatar { width: 50px; height: 50px; border-radius: 50%; background: #ffc800; display: flex; align-items: center; justify-content: center; font-size: 26px; box-shadow: 0 4px 0 #cf9b00; flex-shrink: 0; }
+    .speech-bubble { background: #fff; border: 2px solid #dedede; border-radius: 14px; padding: 10px 14px; font-size: 0.9rem; font-weight: 700; line-height: 1.35; position: relative; flex-grow: 1; }
+    .speech-bubble::before { content: ""; position: absolute; left: -8px; top: 14px; border-width: 5px 8px 5px 0; border-style: solid; border-color: transparent #dedede transparent transparent; }
+
+    /* Exercise Area */
+    .stage { flex-grow: 1; padding: 10px 20px 140px; display: flex; flex-direction: column; }
+    .prompt-label { font-size: 0.8rem; font-weight: 800; color: #afafaf; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.8px; }
+    .prompt-title { font-size: 1.25rem; font-weight: 800; color: #222; margin-bottom: 16px; }
+
+    /* Text Block with Clickable Blanks */
+    .quote-box {
+      background: #fafafa; border: 2px solid #ebebeb; border-radius: 16px; padding: 18px 16px;
+      font-size: 1.05rem; line-height: 2.1; font-weight: 600; color: #333; margin-bottom: 24px;
+    }
+
+    .blank-slot {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 90px; height: 36px; padding: 0 10px; margin: 0 4px;
+      border-bottom: 3px dashed #1cb0f6; border-radius: 8px; background: #eaf6fc;
+      color: #0c88c7; font-weight: 800; vertical-align: middle; cursor: pointer; transition: 0.2s;
+    }
+    .blank-slot.empty { background: #f0f0f0; border-bottom: 3px dashed #b0b0b0; color: #999; }
+    .blank-slot.active-focus { outline: 2px solid #1cb0f6; background: #e1f4fd; }
+
+    /* Word Bank Tiles */
+    .bank-title { font-size: 0.8rem; font-weight: 800; color: #aaa; text-transform: uppercase; margin-bottom: 10px; }
+    .tiles-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+    .tile {
+      background: #fff; border: 2px solid #e5e5e5; border-bottom: 4px solid #d4d4d4;
+      border-radius: 12px; padding: 10px 16px; font-size: 0.95rem; font-weight: 800;
+      color: #4b4b4b; cursor: pointer; user-select: none; transition: 0.1s;
+    }
+    .tile:active { transform: translateY(2px); border-bottom-width: 2px; }
+    .tile.used { opacity: 0.25; pointer-events: none; border-color: #ddd; background: #f2f2f2; }
+
+    /* Bottom Evaluation Drawer */
+    .drawer {
+      position: absolute; bottom: 0; left: 0; right: 0; padding: 18px 20px 24px;
+      display: flex; flex-direction: column; gap: 10px; background: #fff; border-top: 2px solid #eee; z-index: 100;
+    }
+    .drawer.correct { background: var(--correct-bg); border-color: #bbf393; }
+    .drawer.wrong { background: var(--wrong-bg); border-color: #ffc1c1; }
+
+    .drawer-status { display: none; align-items: center; gap: 10px; font-size: 1.25rem; font-weight: 800; }
+    .drawer.correct .drawer-status { display: flex; color: #46a302; }
+    .drawer.wrong .drawer-status { display: flex; color: #ea2b2b; }
+    .drawer-message { font-size: 0.88rem; font-weight: 600; color: #444; line-height: 1.35; }
+
+    .main-btn {
+      background: var(--primary); border: none; border-bottom: 4px solid var(--primary-shade);
+      color: #fff; font-size: 1.05rem; font-weight: 800; padding: 14px 20px; border-radius: 14px;
+      cursor: pointer; text-align: center; text-transform: uppercase; letter-spacing: 0.6px;
+    }
+    .main-btn:active { transform: translateY(2px); border-bottom-width: 2px; }
+    .main-btn:disabled { background: #e5e5e5; border-bottom-color: #ccc; color: #afafaf; cursor: not-allowed; transform: none; }
+    .drawer.wrong .main-btn { background: var(--wrong); border-bottom-color: var(--wrong-shade); }
+
+    /* Finish Stage */
+    .finish-screen { flex-grow: 1; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 30px; text-align: center; }
+    .finish-screen.show { display: flex; }
+  </style>
+</head>
+<body>
+
+  <div id="app-container">
+    <!-- Top Header -->
+    <div class="header-bar">
+      <div class="progress-track">
+        <div id="progress-bar" class="progress-fill"></div>
+      </div>
+      <div class="hearts">
+        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        <span id="heart-count">5</span>
+      </div>
+    </div>
+
+    <!-- Active Stage -->
+    <div id="quiz-stage" class="stage">
+      <div class="mascot-row">
+        <div class="mascot-avatar">🎙️</div>
+        <div class="speech-bubble" id="mascot-text">Fill in the missing tableside presentation words!</div>
+      </div>
+
+      <div style="margin-top: 10px;">
+        <div class="prompt-label" id="course-label">COURSE TRAINING</div>
+        <div class="prompt-title">Complete the Presentation:</div>
+      </div>
+
+      <!-- Quote with blanks -->
+      <div class="quote-box" id="quote-container"></div>
+
+      <!-- Word Bank -->
+      <div class="bank-title">Tap word to fill active blank:</div>
+      <div class="tiles-grid" id="word-bank"></div>
+    </div>
+
+    <!-- Finish / End Stage -->
+    <div id="finish-stage" class="finish-screen">
+      <div style="font-size: 72px; margin-bottom: 16px;" id="finish-icon">🎖️</div>
+      <h2 style="font-size: 1.8rem; font-weight: 900; margin-bottom: 8px;" id="finish-title">Speech Perfect!</h2>
+      <div style="font-size: 2.2rem; font-weight: 900; color: #ff9600; margin-bottom: 12px;">+150 XP</div>
+      <p style="color: #777; font-weight: 600; margin-bottom: 30px;">Your tableside script storytelling is ready for VIP tables!</p>
+      <button class="main-btn" style="width: 100%;" onclick="resetLesson()">Practice More Dishes</button>
+    </div>
+
+    <!-- Bottom Evaluation Drawer -->
+    <div class="drawer" id="eval-drawer">
+      <div class="drawer-status" id="drawer-status">
+        <span id="status-icon">✔</span>
+        <span id="status-title">Spot On!</span>
+      </div>
+      <div class="drawer-message" id="drawer-reason"></div>
+      <button id="action-btn" class="main-btn" disabled onclick="handleButtonClick()">Check</button>
+    </div>
+  </div>
+
+  <script>
+    // --- SYNTHESIZED AUDIO (NO EXTERNAL ASSETS) ---
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function playTone(type) {
+      if (!audioCtx) audioCtx = new AudioCtx();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      const now = audioCtx.currentTime;
+
+      if (type === 'pop') {
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+        osc.start(now);
+        osc.stop(now + 0.08);
+      } else if (type === 'correct') {
+        osc.frequency.setValueAtTime(523.25, now);
+        osc.frequency.setValueAtTime(659.25, now + 0.1);
+        osc.frequency.setValueAtTime(783.99, now + 0.2);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+        osc.start(now);
+        osc.stop(now + 0.4);
+      } else if (type === 'wrong') {
+        osc.frequency.setValueAtTime(260, now);
+        osc.frequency.setValueAtTime(170, now + 0.15);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+        osc.start(now);
+        osc.stop(now + 0.35);
+      }
+    }
+
+    // --- SCRIPT FILL-IN-THE-BLANK DATA ---
+    const challenges = [
+      {
+        course: "Course 1 • New Zealand Scampi",
+        hint: "Explain the regional inspiration and bread crunch!",
+        template: [
+          "Inspired by Levantine ",
+          { key: "Fattoush" },
+          ", incorporating seasonal Yunnan pomegranate, ",
+          { key: "za'atar" },
+          " pita crisps, and pistachio ",
+          { key: "hummus" },
+          "."
+        ],
+        distractors: ["Guacamole", "Brioche", "Tabouleh"]
+      },
+      {
+        course: "Course 2 • Beef Tenderloin Tartar",
+        hint: "Highlight the seasonings and temperature contrast!",
+        template: [
+          "Prepared in larger hand-cut pieces seasoned with kombu oil and aged soy sauce. Plated with a savory ",
+          { key: "beurre noisette" },
+          " and miso ice cream for temperature contrast, and finished with ",
+          { key: "Oscietra caviar" },
+          "."
+        ],
+        distractors: ["Beluga caviar", "bone marrow", "truffle foam"]
+      },
+      {
+        course: "Course 3 • Torched Mackerel (Aki Saba)",
+        hint: "Don't forget the Korean trip roots & garnish!",
+        template: [
+          "Inspired by our team's culinary research in ",
+          { key: "Jeju" },
+          ", it is accompanied by braised beef tongue, ",
+          { key: "ssamjang" },
+          " hollandaise, and a crisp fried ",
+          { key: "perilla" },
+          " leaf."
+        ],
+        distractors: ["Seoul", "gochujang", "shiso"]
+      },
+      {
+        course: "Course 4 • Five Grains",
+        hint: "Storytelling with Emperor Shen Nong!",
+        template: [
+          "Our interpretation of traditional Chinese Five Grains attributed to Emperor ",
+          { key: "Shen Nong" },
+          ", bound in shallot stock with watercress and parmesan, paired with a roasted ",
+          { key: "sourdough" },
+          " miso velouté."
+        ],
+        distractors: ["Huang Di", "rye bread", "brioche"]
+      },
+      {
+        course: "Course 6 • Wild Caught Scallop",
+        hint: "Focus on the XO enrichment and core temperature!",
+        template: [
+          "Wild-caught Dalian scallop roasted to a core temperature of ",
+          { key: "46-48" },
+          " degrees Celsius, over an espresso and bacon ",
+          { key: "XO ragout" },
+          ", dressed with seaweed ",
+          { key: "beurre blanc" },
+          "."
+        ],
+        distractors: ["52-54", "chimichurri", "vinaigrette"]
+      },
+      {
+        course: "Course 8 • Roasted Duck Breast",
+        hint: "Second duck service: North Indian winter profile!",
+        template: [
+          "Duck breast dry-aged over a week and roasted over two hours. Crusted with spiced crispy duck skin crumble, paired with ",
+          { key: "Garam Masala" },
+          " duck jus and ",
+          { key: "sea buckthorn" },
+          " velouté."
+        ],
+        distractors: ["Curry leaf", "yuzu kosho", "tamarind"]
+      },
+      {
+        course: "Course 10 • 70% Guanaja Dark Chocolate",
+        hint: "Crucial guest instruction on temperature!",
+        template: [
+          "Accompanied by seasonal mandarin sorbet. Please enjoy the chocolate layers and chilled sorbet ",
+          { key: "together" },
+          " in alternating bites, described as pleasantly ",
+          { key: "warm" },
+          " rather than hot."
+        ],
+        distractors: ["separately", "scalding", "frozen"]
+      }
+    ];
+
+    // --- STATE ---
+    let curIndex = 0;
+    let hearts = 5;
+    let activeBlankIdx = 0;
+    let userAnswers = {}; // { blankId: { word: "abc", tileId: "..." } }
+    let isEvaluated = false;
+
+    const progressBar = document.getElementById('progress-bar');
+    const heartCount = document.getElementById('heart-count');
+    const mascotText = document.getElementById('mascot-text');
+    const courseLabel = document.getElementById('course-label');
+    const quoteContainer = document.getElementById('quote-container');
+    const wordBank = document.getElementById('word-bank');
+    const evalDrawer = document.getElementById('eval-drawer');
+    const drawerStatus = document.getElementById('drawer-status');
+    const statusTitle = document.getElementById('status-title');
+    const statusIcon = document.getElementById('status-icon');
+    const drawerReason = document.getElementById('drawer-reason');
+    const actionBtn = document.getElementById('action-btn');
+
+    function loadChallenge() {
+      const current = challenges[curIndex];
+      isEvaluated = false;
+      userAnswers = {};
+      activeBlankIdx = 0;
+
+      progressBar.style.width = `${(curIndex / challenges.length) * 100}%`;
+      courseLabel.innerText = current.course;
+      mascotText.innerText = current.hint;
+
+      evalDrawer.className = 'drawer';
+      actionBtn.innerText = 'Check';
+      actionBtn.disabled = true;
+
+      // 1. Build text quote and blanks
+      quoteContainer.innerHTML = '';
+      let blankCounter = 0;
+
+      current.template.forEach(segment => {
+        if (typeof segment === 'string') {
+          quoteContainer.appendChild(document.createTextNode(segment));
+        } else {
+          const bId = blankCounter++;
+          const span = document.createElement('span');
+          span.className = 'blank-slot empty';
+          span.id = `blank-${bId}`;
+          span.innerText = '___';
+          span.onclick = () => onBlankClicked(bId);
+          quoteContainer.appendChild(span);
+        }
+      });
+
+      // Highlight first blank
+      highlightBlank(0);
+
+      // 2. Prepare Word Bank
+      wordBank.innerHTML = '';
+      const correctWords = current.template.filter(t => typeof t !== 'string').map(t => t.key);
+      const allWords = shuffle([...correctWords, ...current.distractors]);
+
+      allWords.forEach((word, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'tile';
+        btn.id = `tile-${idx}`;
+        btn.innerText = word;
+        btn.onclick = () => onTilePicked(word, `tile-${idx}`);
+        wordBank.appendChild(btn);
+      });
+    }
+
+    function shuffle(arr) {
+      return arr.sort(() => Math.random() - 0.5);
+    }
+
+    function highlightBlank(idx) {
+      activeBlankIdx = idx;
+      document.querySelectorAll('.blank-slot').forEach((slot, i) => {
+        slot.classList.toggle('active-focus', i === idx);
+      });
+    }
+
+    function onBlankClicked(bId) {
+      if (isEvaluated) return;
+      // If blank already has word, remove it back to bank
+      if (userAnswers[bId]) {
+        playTone('pop');
+        const tile = document.getElementById(userAnswers[bId].tileId);
+        if (tile) tile.classList.remove('used');
+        delete userAnswers[bId];
+        const slot = document.getElementById(`blank-${bId}`);
+        slot.className = 'blank-slot empty';
+        slot.innerText = '___';
+      }
+      highlightBlank(bId);
+      checkCompletion();
+    }
+
+    function onTilePicked(word, tileId) {
+      if (isEvaluated) return;
+      playTone('pop');
+
+      // If active slot already filled, clear old one first
+      if (userAnswers[activeBlankIdx]) {
+        const oldTile = document.getElementById(userAnswers[activeBlankIdx].tileId);
+        if (oldTile) oldTile.classList.remove('used');
+      }
+
+      // Fill active blank
+      userAnswers[activeBlankIdx] = { word, tileId };
+      const slot = document.getElementById(`blank-${activeBlankIdx}`);
+      slot.className = 'blank-slot';
+      slot.innerText = word;
+
+      // Mark tile as used
+      document.getElementById(tileId).classList.add('used');
+
+      // Automatically move focus to next empty blank
+      const blanksCount = challenges[curIndex].template.filter(t => typeof t !== 'string').length;
+      let nextEmpty = -1;
+      for (let i = 0; i < blanksCount; i++) {
+        if (!userAnswers[i]) {
+          nextEmpty = i;
+          break;
+        }
+      }
+
+      if (nextEmpty !== -1) {
+        highlightBlank(nextEmpty);
+      } else {
+        document.querySelectorAll('.blank-slot').forEach(s => s.classList.remove('active-focus'));
+      }
+
+      checkCompletion();
+    }
+
+    function checkCompletion() {
+      const blanksCount = challenges[curIndex].template.filter(t => typeof t !== 'string').length;
+      const filledCount = Object.keys(userAnswers).length;
+      actionBtn.disabled = filledCount < blanksCount;
+    }
+
+    function handleButtonClick() {
+      if (!isEvaluated) {
+        evaluate();
+      } else {
+        nextChallenge();
+      }
+    }
+
+    function evaluate() {
+      isEvaluated = true;
+      const current = challenges[curIndex];
+      const correctKeys = current.template.filter(t => typeof t !== 'string').map(t => t.key);
+
+      let allCorrect = true;
+      correctKeys.forEach((key, idx) => {
+        if (!userAnswers[idx] || userAnswers[idx].word.toLowerCase() !== key.toLowerCase()) {
+          allCorrect = false;
+        }
+      });
+
+      if (allCorrect) {
+        playTone('correct');
+        evalDrawer.className = 'drawer correct';
+        statusTitle.innerText = 'Spot On!';
+        statusIcon.innerText = '✔';
+        drawerReason.innerText = 'Flawless tableside verbiage! Guests will love this.';
+      } else {
+        playTone('wrong');
+        hearts = Math.max(0, hearts - 1);
+        heartCount.innerText = hearts;
+        evalDrawer.className = 'drawer wrong';
+        statusTitle.innerText = 'Correct Script:';
+        statusIcon.innerText = '✖';
+        drawerReason.innerText = 'Key terms: ' + correctKeys.join(', ');
+
+        if (hearts === 0) {
+          setTimeout(showGameOver, 900);
+          return;
+        }
+      }
+
+      actionBtn.innerText = 'Continue';
+    }
+
+    function nextChallenge() {
+      curIndex++;
+      if (curIndex < challenges.length) {
+        loadChallenge();
+      } else {
+        showSuccess();
+      }
+    }
+
+    function showSuccess() {
+      progressBar.style.width = '100%';
+      document.getElementById('quiz-stage').style.display = 'none';
+      evalDrawer.style.display = 'none';
+      document.getElementById('finish-stage').classList.add('show');
+    }
+
+    function showGameOver() {
+      document.getElementById('quiz-stage').style.display = 'none';
+      evalDrawer.style.display = 'none';
+      const finish = document.getElementById('finish-stage');
+      finish.classList.add('show');
+      document.getElementById('finish-icon').innerText = '💔';
+      document.getElementById('finish-title').innerText = 'Practice Needed';
+      finish.querySelector('p').innerText = 'Review the official training PDF before tonight\'s dinner service.';
+    }
+
+    function resetLesson() {
+      curIndex = 0;
+      hearts = 5;
+      heartCount.innerText = hearts;
+      document.getElementById('quiz-stage').style.display = 'flex';
+      evalDrawer.style.display = 'flex';
+      document.getElementById('finish-stage').classList.remove('show');
+      loadChallenge();
+    }
+
+    // Start
+    loadChallenge();
+  </script>
+</body>
+</html>
